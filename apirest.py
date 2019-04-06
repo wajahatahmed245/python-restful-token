@@ -4,22 +4,12 @@ import model as database
 from flask_cors import CORS, cross_origin
 import jwt
 from functools import wraps
-
+import numba
 
 app = Flask(__name__)
 cors = CORS(app)
 
-
-# when user open site / or open slash the function below it executes
-# decorater
-# jsonify display in json format
-
 app.secret_key = 'any randomstring'
-
-
-# @app.route('/pupies/<int:id>/',methods =['GET','POST','DELETE'])
-# def home():
-#     return render_template('index.html')
 
 def token_required(f):
     @wraps(f)
@@ -34,20 +24,22 @@ def token_required(f):
     return decorated
 
 
-
+# export FLASK_APP=hello.py
 # http://127.0.0.1:5000/blogdata?token=
 @app.route('/blogdata', methods=['GET', 'POST', 'DELETE'])
 @token_required
+@numba.jit
 def blogdata():
     blog = database.Blog()
     blogs = blog.blog_data()
     return jsonify(blogs)
 
-
+ 
 @app.route('/login', methods=['GET', 'POST', 'DELETE'])
+@numba.jit
 def login():
     
-   
+   #token
     token = jwt.encode({ 'exp': datetime.datetime.utcnow(
     )+datetime.timedelta(minutes=30)}, app.secret_key)
     return jsonify({'token': token.decode('UTF-8')})
@@ -62,8 +54,3 @@ def json():
 if __name__ == '__main__':
 
     app.run(debug=True)
-'''
-@app.route("/getPics")
-def pics():
-    return jsonify(shopsPics)
-'''
